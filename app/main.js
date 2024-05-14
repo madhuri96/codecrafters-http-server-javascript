@@ -76,7 +76,9 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       socket.write(responseHeaders + "\r\n" + responseBody);
       socket.end();
     } else if (url.startsWith("/files/")) {
-      const fileName = path.join(__dirname, "files", url.split("/files/")[1]);
+      //const fileName = path.join(__dirname, "files", url.split("/files/")[1]);
+      const directory = process.argv[3];
+      const fileName = path.join(directory, url.split("/files/")[1]);
 
       fs.readFile(fileName, (err, data) => {
         if (err) {
