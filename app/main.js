@@ -23,11 +23,13 @@ const server = net.createServer((socket) => {
   socket.once("data", (data) => {
     const request = data.toString();
     const lines = request.split("\r\n");
-    const [method, path] = lines[0].split(" ");
+    const [method, url] = lines[0].split(" ");
 
-    if (method === "GET" && path.startsWith("/echo/")) {
-      const str = decodeURIComponent(path.substring(6));
-      const responseBody = str;
+    if (url === "/") {
+      socket.write("HTTP/1.1 200 OK\r\n\r\n");
+    } else if (url.startsWith("/echo/")) {
+      const content = url.split("/echo/")[1];
+      const responseBody = content;
       const contentLength = Buffer.byteLength(responseBody, "utf-8");
 
       const responseHeaders = [
@@ -35,14 +37,19 @@ const server = net.createServer((socket) => {
         "Content-Type: text/plain",
         `Content-Length: ${contentLength}`,
         "",
-        responseBody,
       ].join("\r\n");
 
-      socket.write(responseHeaders);
+      socket.write(responseHeaders + "\r\n" + responseBody);
     } else {
       socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
     }
 
+    socket.end();
+  });
+
+  // Error Handling
+  socket.on("error", (e) => {
+    console.error("ERROR: " + e);
     socket.end();
   });
 });
