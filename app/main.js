@@ -11,6 +11,9 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
     const lines = request.split("\r\n");
     const [method, url] = lines[0].split(" ");
 
+    // Parse request headers
+    const headers = {};
+
     if (url === "/") {
       socket.write("HTTP/1.1 200 OK\r\n\r\n");
       socket.end();
@@ -41,10 +44,15 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       const responseBody = content;
       const contentLength = Buffer.byteLength(responseBody, "utf-8");
 
+      // Accept-Encoding header is present and includes gzip
+      const acceptEncoding = headers["accept-encoding"] || "";
+      const includeContentEncoding = acceptEncoding.includes("gzip");
+
       const responseHeaders = [
         "HTTP/1.1 200 OK",
         "Content-Type: text/plain",
         `Content-Length: ${contentLength}`,
+        includeContentEncoding ? "Content-Encoding: gzip" : "",
         "",
       ].join("\r\n");
 
