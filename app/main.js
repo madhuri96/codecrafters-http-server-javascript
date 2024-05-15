@@ -45,7 +45,8 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       });
     } else if (url.startsWith("/echo/")) {
       const content = url.split("/echo/")[1];
-      const responseBody = content;
+      const responseBody = content.slice(0, 6);
+      //const responseBody = content;
       const contentLength = Buffer.byteLength(responseBody, "utf-8");
 
       // Accept-Encoding header is present and includes gzip
