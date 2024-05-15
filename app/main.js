@@ -44,7 +44,7 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
         socket.end();
       });
     } else if (url.startsWith("/echo/")) {
-      const content = url.split("/echo/")[1];
+      const content = url.split("/echo/")[1] ?? "";
       const responseBody = content.slice(0, 6);
       //const responseBody = content;
       const contentLength = Buffer.byteLength(responseBody, "utf-8");
