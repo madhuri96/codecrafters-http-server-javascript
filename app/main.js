@@ -52,7 +52,7 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       const content = url.split("/echo/")[1] ?? "";
 
       // Check if the client accepts gzip encoding
-      const acceptEncodingHeader = requestLines.find((line) =>
+      const acceptEncodingHeader = lines.find((line) =>
         line.toLowerCase().startsWith("accept-encoding")
       );
       const contentEncodingHeader =
