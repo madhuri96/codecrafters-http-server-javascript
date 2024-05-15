@@ -9,14 +9,16 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
   socket.on("data", (data) => {
     const request = data.toString();
     const lines = request.split("\r\n");
+    const firstLine = lines[0];
     const [method, url] = lines[0].split(" ");
+    const body = lines[lines.length - 1];
 
     // Parse request headers
-    const headers = {};
-    lines.slice(1, -2).forEach((line) => {
-      const [name, value] = line.split(": ");
-      headers[name.toLowerCase()] = value;
-    });
+    // const headers = {};
+    // lines.slice(1, -2).forEach((line) => {
+    //   const [name, value] = line.split(": ");
+    //   headers[name.toLowerCase()] = value;
+    // });
 
     if (url === "/") {
       socket.write("HTTP/1.1 200 OK\r\n\r\n");
@@ -43,15 +45,36 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
         }
         socket.end();
       });
-    } else if (url.startsWith("/echo/")) {
+    } else if (url.startsWith("/echo")) {
+      //else if (url.startsWith("/echo/")) {
+      //const content = url.split("/echo/")[1] ?? "";
+      //const responseBody = content.slice(0, 6);
       const content = url.split("/echo/")[1] ?? "";
-      const responseBody = content.slice(0, 6);
+
+      // Check if the client accepts gzip encoding
+      const acceptEncodingHeader = requestLines.find((line) =>
+        line.toLowerCase().startsWith("accept-encoding")
+      );
+      const contentEncodingHeader =
+        acceptEncodingHeader && acceptEncodingHeader.includes("gzip")
+          ? "gzip"
+          : "";
+      // Prepare response headers
+      let responseHeaders = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content.length}\r\n`;
+      if (contentEncodingHeader) {
+        responseHeaders += `Content-Encoding: ${contentEncodingHeader}\r\n`;
+      }
+      responseHeaders += "\r\n";
+      // Write response headers and data
+      socket.write(responseHeaders);
+      socket.write(content);
+
       //const responseBody = content;
-      const contentLength = Buffer.byteLength(responseBody, "utf-8");
+      //const contentLength = Buffer.byteLength(responseBody, "utf-8");
 
       // Accept-Encoding header is present and includes gzip
-      const acceptEncoding = headers["accept-encoding"] || "";
-      const includeContentEncoding = acceptEncoding.includes("gzip");
+      // const acceptEncoding = headers["accept-encoding"] || "";
+      // const includeContentEncoding = acceptEncoding.includes("gzip");
 
       // const responseHeaders = [
       //   "HTTP/1.1 200 OK",
@@ -61,23 +84,9 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       //   "",
       // ].join("\r\n");
 
-      let responseHeaders = [
-        "HTTP/1.1 200 OK",
-        "Content-Type: text/plain",
-        `Content-Length: ${contentLength}`,
-      ];
-
-      if (includeContentEncoding) {
-        responseHeaders.push("Content-Encoding: gzip");
-      }
-      responseHeaders.push("");
-
-      // Concatenate headers and body into a single response string
-      const response = responseHeaders.join("\r\n") + responseBody;
-
       // socket.write(responseHeaders + "\r\n" + responseBody);
-      socket.write(response);
-      socket.end();
+
+      //socket.end();
     } else if (url.startsWith("/files/")) {
       const directory = process.argv[3];
       const fileName = path.join(directory, url.split("/files/")[1]);
