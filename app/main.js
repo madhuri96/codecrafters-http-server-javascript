@@ -13,6 +13,10 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
 
     // Parse request headers
     const headers = {};
+    lines.slice(1, -2).forEach((line) => {
+      const [name, value] = line.split(": ");
+      headers[name.toLowerCase()] = value;
+    });
 
     if (url === "/") {
       socket.write("HTTP/1.1 200 OK\r\n\r\n");
