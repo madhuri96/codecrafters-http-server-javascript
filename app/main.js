@@ -1,6 +1,7 @@
 const net = require("net");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -43,20 +44,50 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       const acceptEncodingHeader = lines.find((line) =>
         line.toLowerCase().startsWith("accept-encoding")
       );
-      const contentEncodingHeader =
-        acceptEncodingHeader && acceptEncodingHeader.includes("gzip")
-          ? "gzip"
-          : "";
+      const acceptGzip =
+        acceptEncodingHeader && acceptEncodingHeader.includes("gzip");
+
       // Prepare response headers
-      let responseHeaders = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content.length}\r\n`;
-      if (contentEncodingHeader) {
-        responseHeaders += `Content-Encoding: ${contentEncodingHeader}\r\n`;
+      let responseHeaders = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n`;
+      let responseBody = content;
+
+      if (acceptGzip) {
+        const gzipBody = zlib.gzipSync(Buffer.from(content, "utf8"));
+        responseHeaders += `Content-Encoding: gzip\r\n`;
+        responseHeaders += `Content-Length: ${gzipBody.length}\r\n`;
+        responseBody = gzipBody;
+      } else {
+        responseHeaders += `Content-Length: ${Buffer.byteLength(
+          content,
+          "utf8"
+        )}\r\n`;
       }
+
       responseHeaders += "\r\n";
-      // Write response headers and data
+
       socket.write(responseHeaders);
-      socket.write(content);
+      socket.write(responseBody);
       socket.end();
+      // } else if (url.startsWith("/echo")) {
+      //   const content = url.split("/echo/")[1] ?? "";
+
+      //   // Check if the client accepts gzip encoding
+      //   const acceptEncodingHeader = lines.find((line) =>
+      //     line.toLowerCase().startsWith("accept-encoding")
+      //   );
+      //   const contentEncodingHeader =
+      //     acceptEncodingHeader && acceptEncodingHeader.includes("gzip")
+      //       ? "gzip"
+      //       : "";
+      //   // Prepare response headers
+      //   let responseHeaders = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content.length}\r\n`;
+      //   if (contentEncodingHeader) {
+      //     responseHeaders += `Content-Encoding: ${contentEncodingHeader}\r\n`;
+      //   }
+      //   responseHeaders += "\r\n";
+      //   socket.write(responseHeaders);
+      //   socket.write(content);
+      //   socket.end();
     } else if (url.startsWith("/files/")) {
       const directory = process.argv[3];
       const fileName = path.join(directory, url.split("/files/")[1]);
