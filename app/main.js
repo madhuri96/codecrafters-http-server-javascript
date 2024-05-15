@@ -68,26 +68,6 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       socket.write(responseHeaders);
       socket.write(responseBody);
       socket.end();
-      // } else if (url.startsWith("/echo")) {
-      //   const content = url.split("/echo/")[1] ?? "";
-
-      //   // Check if the client accepts gzip encoding
-      //   const acceptEncodingHeader = lines.find((line) =>
-      //     line.toLowerCase().startsWith("accept-encoding")
-      //   );
-      //   const contentEncodingHeader =
-      //     acceptEncodingHeader && acceptEncodingHeader.includes("gzip")
-      //       ? "gzip"
-      //       : "";
-      //   // Prepare response headers
-      //   let responseHeaders = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content.length}\r\n`;
-      //   if (contentEncodingHeader) {
-      //     responseHeaders += `Content-Encoding: ${contentEncodingHeader}\r\n`;
-      //   }
-      //   responseHeaders += "\r\n";
-      //   socket.write(responseHeaders);
-      //   socket.write(content);
-      //   socket.end();
     } else if (url.startsWith("/files/")) {
       const directory = process.argv[3];
       const fileName = path.join(directory, url.split("/files/")[1]);
