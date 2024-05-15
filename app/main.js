@@ -64,7 +64,7 @@ const server = net.createServer({ keepAlive: true }, (socket) => {
       let responseHeaders = [
         "HTTP/1.1 200 OK",
         "Content-Type: text/plain",
-        `Content-Length: ${responseLength}`,
+        `Content-Length: ${contentLength}`,
       ];
 
       if (includeContentEncoding) {
